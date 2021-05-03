@@ -24,6 +24,10 @@ st.title('''Get Your Vaccine availability Information''')
 # district_df_all = district_df_all[["district_name", "district_id"]].sort_values("district_name")
 # district_df_all.to_csv("districts.csv", index=False)
 
+st.sidebar.title("Project Name: ")
+st.sidebar.write("Vaccine availability checking")
+htmlq='''<a href='https://github.com/sidharthbdash/vaccine' style='text-decoration: none;'>GitHub repo</a> '''
+st.sidebar.markdown(htmlq,unsafe_allow_html=True)
 
 
 age,days=st.beta_columns(2)
@@ -68,4 +72,9 @@ if len(district_ids)>0:
 	df = df.drop(["block_name"], axis=1).sort_values(["min_age_limit", "available_capacity"], ascending=[True, False])
 	if len(df[df.min_age_limit == age])==0:
 		st.write("No Records Found....")
-	else:st.write(df[df.min_age_limit == age])
+	else:
+		st.write(df[df.min_age_limit == age])
+		col1,col2,col3,col4=st.beta_columns(4)
+
+		html='''<a href='https://www.cowin.gov.in/' style='text-decoration: none;'>Click here to register</a>'''
+		col4.markdown(html,unsafe_allow_html=True)
