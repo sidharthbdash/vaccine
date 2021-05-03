@@ -57,31 +57,32 @@ if len(district_ids):
 	    response = requests.get(URL)
 	    data = json.loads(response.text)['centers']
 	    df = pd.DataFrame(data)
-	    df = df.explode("sessions")
-	    df['min_age_limit'] = df.sessions.apply(lambda x: x['min_age_limit'])
-	    df['available_capacity'] = df.sessions.apply(lambda x: x['available_capacity'])
-	    df['date'] = df.sessions.apply(lambda x: x['date'])
-	    df = df[["date", "min_age_limit", "available_capacity", "pincode", "name", "state_name", "district_name", "block_name", "fee_type"]]
-	    if all_date_df is not None:
-	        all_date_df = pd.concat([all_date_df, df])
-	    else:
-	        all_date_df = df
+	    if len(df):
+		    df = df.explode("sessions")
+		    df['min_age_limit'] = df.sessions.apply(lambda x: x['min_age_limit'])
+		    df['available_capacity'] = df.sessions.apply(lambda x: x['available_capacity'])
+		    df['date'] = df.sessions.apply(lambda x: x['date'])
+		    df = df[["date", "min_age_limit", "available_capacity", "pincode", "name", "state_name", "district_name", "block_name", "fee_type"]]
+		    if all_date_df is not None:
+		        all_date_df = pd.concat([all_date_df, df])
+		    else:
+		        all_date_df = df
 	if all_date_df is not None:
 		all_date_df = all_date_df.sort_values(["min_age_limit", "available_capacity", "date", "district_name"], ascending=[True, False, True, True])
 		all_date_df = all_date_df[all_date_df.min_age_limit == age]
 		all_date_df = all_date_df[all_date_df.available_capacity>0]
 		all_date_df.set_index('date', inplace=True)            
-	# df = df.drop(["block_name"], axis=1).sort_values(["min_age_limit", "available_capacity"], ascending=[True, False])
-	if len(all_date_df.index):
-		st.write(all_date_df)
-		col1,col2,col3,col4=st.beta_columns(4)
+		if len(all_date_df.index):
+			st.write(all_date_df)
+			col1,col2,col3,col4=st.beta_columns(4)
 
-		html='''<a href='https://www.cowin.gov.in/' style='text-decoration: none;'>Click here to register</a>'''
-		col4.markdown(html,unsafe_allow_html=True)
-		
+			html='''<a href='https://www.cowin.gov.in/' style='text-decoration: none;'>Click here to register</a>'''
+			col4.markdown(html,unsafe_allow_html=True)
+			
+		else:
+			st.write("No Records Found....")
 	else:
 		st.write("No Records Found....")
-
 #hinding the streamlit contents
 hide_streamlit_style = """
             <style>
