@@ -26,7 +26,9 @@ st.title('''Get Your Vaccine availability Information''')
 
 st.sidebar.title("Project Name: ")
 st.sidebar.write("Vaccine availability checking")
-htmlq='''<a href='https://github.com/sidharthbdash/vaccine' style='text-decoration: none;'>GitHub repo</a> '''
+htmlq='''<a href='https://github.com/sidharthbdash/vaccine' style='text-decoration: none;'>GitHub repo</a><br>
+		<a href='https://www.cowin.gov.in/' style='text-decoration: none;'>Register here</a>
+ '''
 st.sidebar.markdown(htmlq,unsafe_allow_html=True)
 
 
@@ -34,18 +36,14 @@ age,days=st.beta_columns(2)
 age=age.selectbox("Select Minimum age",(18,45))
 next_n_days=days.selectbox("Select next n days",(2,3,4,5))
 
-col_name=["district_name","district_id"]
-dist_data=pd.read_csv("districts.csv",names=col_name)
-d_names=dist_data.district_name.to_list()[1:]
-d_ids=dist_data.district_id.to_list()[1:]
 
-district_name=st.multiselect("Select Dist names: ",d_names)
-district_ids=[]
-for i in district_name:
-	district_ids.append(int(d_ids[d_names.index(i)]))
+data=pd.read_csv("districts.csv")
+data_dict=dict(data.values)
+total_dist=list(data_dict.keys())
+district_name=st.multiselect("Select Dist names: ",total_dist,"Dhenkanal")
+district_ids=[data_dict[i] for i in district_name]
 
-
-if len(district_ids)>0:
+if len(district_ids):
 	base = datetime.datetime.today()
 	date_list = [base + datetime.timedelta(days=x) for x in range(next_n_days)]
 	date_str = [x.strftime("%d-%m-%Y") for x in date_list]
@@ -68,13 +66,27 @@ if len(district_ids)>0:
 	        all_date_df = pd.concat([all_date_df, df])
 	    else:
 	        all_date_df = df
-	            
-	df = df.drop(["block_name"], axis=1).sort_values(["min_age_limit", "available_capacity"], ascending=[True, False])
-	if len(df[df.min_age_limit == age])==0:
-		st.write("No Records Found....")
-	else:
-		st.write(df[df.min_age_limit == age])
+	if all_date_df is not None:
+		all_date_df = all_date_df.sort_values(["min_age_limit", "available_capacity", "date", "district_name"], ascending=[True, False, True, True])
+		all_date_df = all_date_df[all_date_df.min_age_limit == age]
+		all_date_df = all_date_df[all_date_df.available_capacity>0]
+		all_date_df.set_index('date', inplace=True)            
+	# df = df.drop(["block_name"], axis=1).sort_values(["min_age_limit", "available_capacity"], ascending=[True, False])
+	if len(all_date_df.index):
+		st.write(all_date_df)
 		col1,col2,col3,col4=st.beta_columns(4)
 
 		html='''<a href='https://www.cowin.gov.in/' style='text-decoration: none;'>Click here to register</a>'''
 		col4.markdown(html,unsafe_allow_html=True)
+		
+	else:
+		st.write("No Records Found....")
+
+#hinding the streamlit contents
+hide_streamlit_style = """
+            <style>
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+            </style>
+            """
+st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
