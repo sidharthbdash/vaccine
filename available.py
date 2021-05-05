@@ -43,6 +43,13 @@ total_dist=list(data_dict.keys())
 district_name=st.multiselect("Select Dist names: ",total_dist,"Dhenkanal")
 district_ids=[data_dict[i] for i in district_name]
 
+@cachetools.func.ttl_cache(maxsize=100, ttl=30 * 60)
+@retry(KeyError, tries=5, delay=2)
+def get_data(URL):
+	response = requests.get(URL, timeout=3)
+	data = json.loads(response.text)['centers']
+	return data
+
 if len(district_ids):
 	base = datetime.datetime.today()
 	date_list = [base + datetime.timedelta(days=x) for x in range(next_n_days)]
@@ -54,7 +61,7 @@ if len(district_ids):
 	for DIST_ID in district_ids:
 	    print(f"checking for INP_DATE:{INP_DATE} & DIST_ID:{DIST_ID}")
 	    URL = "https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/calendarByDistrict?district_id={}&date={}".format(DIST_ID, INP_DATE)
-	    response = requests.get(URL)
+	    response = get_data(URL)
 	    data = json.loads(response.text)['centers']
 	    df = pd.DataFrame(data)
 	    if len(df):
